@@ -1,0 +1,105 @@
+#include<stdio.h>
+//#include<SDL/SDL.h>
+#include "client_func.h"
+
+#define MSG_NUM 5           /* メッセージの数 */
+
+// static 
+static char gFontFile[] = "images/APJapanesefontT.ttf";
+static char gMsgStrings[ 100 ][ 100 ] = { "はじめる", "あそびかた", "おわる", "つづける", "おわる"};
+static SDL_Color black = {0x00, 0x00, 0x00};
+int setstartp;
+int screensizex;
+int screensizey;
+TTF_Font* sTTF;
+SDL_Surface *usa;  // 画像データへのポインタ
+
+SDL_Rect PA;
+SDL_Rect P;
+SDL_Rect PMR;
+SDL_Rect PM;
+
+/*初期設定*/
+void setstart(){
+
+	// SDL初期化
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
+		printf("failed to initialize SDL.\n");
+		exit(-1);
+	}
+
+	SDL_WM_SetCaption("こころぴょんぴょん", NULL);	// ウィンドウ名などを指定
+
+	// ウィンドウ生成
+	if((window = SDL_SetVideoMode(screensizex, screensizey, 32, SDL_SWSURFACE/* | SDL_FULLSCREEN*/)) == NULL) {
+		printf("failed to initialize videomode.\n");
+		exit(-1);
+	}
+
+//SDL_JoystickEventState(SDL_ENABLE);
+//Joystick = SDL_JoystickOpen(0);
+
+
+	usa = IMG_Load("images/usa.png");//pngの読み込み
+
+
+    // フォントからメッセージ作成 
+    // 初期化 
+    if(TTF_Init() < 0){
+        printf("error");
+    }
+    // フォントを開く 
+    gTTF = TTF_OpenFont( gFontFile, 48 );
+    if( gTTF == NULL ){
+        printf("error");
+    }
+
+    // メッセージ作成 
+    int h;
+    for(h=0; h<MSG_NUM; h++){
+        gMessages[h] = TTF_RenderUTF8_Blended(gTTF, gMsgStrings[h], black);
+    }
+
+	sTTF = TTF_OpenFont( gFontFile, 30 );
+	gMessages[5] = TTF_RenderUTF8_Blended(sTTF, gMsgStrings[5], black);
+
+}
+
+
+
+
+
+void exepaste(void){
+
+	// 向きの管理
+	if(LR == -1 || jump_LR == -1)
+	PA.y = 200; //左
+	else if(LR == 1 || jump_LR == 1)
+	PA.y = 100; //右
+	else if(jumpflag == 0)
+	PA.y = 0; //正面
+	if(UD != 0)
+	PA.y = 300; //後ろ
+
+	// アニメーション
+	if(time % 10 == 0)
+	PA.x = (PA.x + 80) % 160;
+	if(jumpflag == 1 || UD == -1)
+	PA.x = 80; //アニメーション固定
+
+	SDL_BlitSurface(usa, &PA, SDL_GetVideoSurface(), &P);
+	
+	/*
+	SDL_BlitSurface(Player[paste0], &PA[paste0], SDL_GetVideoSurface(), &P[paste0]);
+	SDL_BlitSurface(Player[paste1], &PA[paste1], SDL_GetVideoSurface(), &P[paste1]);
+	SDL_BlitSurface(Player[paste2], &PA[paste2], SDL_GetVideoSurface(), &P[paste2]);
+	SDL_BlitSurface(Player[paste3], &PA[paste3], SDL_GetVideoSurface(), &P[paste3]);
+*/
+
+	/*『1P』とかの表示　あとで4人分まで拡張*/
+	PM.x = P.x + 25;
+	PM.y = P.y - 30;
+	SDL_BlitSurface(gMessages[5], &PMR, SDL_GetVideoSurface(), &PM);
+
+}
+
